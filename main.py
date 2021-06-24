@@ -80,13 +80,11 @@ class MainWindow(QtWidgets.QWidget):
         self.mySerialPort.serialPort.write("L,1".encode())
         self.buttonOn.setEnabled(False)
         self.buttonOff.setEnabled(True)
-        
 
     def ledOff(self):
         self.mySerialPort.serialPort.write("L,0".encode())
         self.buttonOn.setEnabled(True)
         self.buttonOff.setEnabled(False)
-
 
     def dataReceived(self):
         self.buttonStart.setEnabled(False)
@@ -98,14 +96,13 @@ class MainWindow(QtWidgets.QWidget):
         if self.lineEditSendData == "feedback":
             self.buttonStart.setEnabled(True)
             self.labelMessage.setText("Message Received...")
-        
-       
+            
     def messageTextEdit(self):
         if self.lineEditSendData != "feedback":
             self.incomingMessage = str(self.mySerialPort.data.decode())    
             self.labelLedStatusResult.setText(self.incomingMessage)
         
-        
+            
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     mainWindow = MainWindow()
