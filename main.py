@@ -103,8 +103,9 @@ class MainWindow(QtWidgets.QWidget):
         
        
     def messageTextEdit(self):
-        self.incomingMessage = str(self.mySerialPort.data.decode())    
-        self.labelLedStatusResult.setText(self.incomingMessage)
+        if self.lineEditSendData != "feedback":
+            self.incomingMessage = str(self.mySerialPort.data.decode())    
+            self.labelLedStatusResult.setText(self.incomingMessage)
         
         
 if __name__ == '__main__':
