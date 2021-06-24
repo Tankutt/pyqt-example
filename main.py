@@ -47,11 +47,9 @@ class MainWindow(QtWidgets.QWidget):
         self.buttonOn=QPushButton("On",self)
         self.buttonOff=QPushButton("Off",self)
         self.buttonOff.setEnabled(False)
-        #self.textEdit=QTextEdit("",self)
         self.lineEditSendData=QLineEdit("",self)
         self.lineEditSendData.setValidator(QIntValidator(0,10000,self))
         
-        #self.textEdit.setGeometry(100,80,200,30)
         self.buttonStart.setGeometry(400,80,100,30)
         self.buttonOn.setGeometry(100,300,100,30)
         self.buttonOff.setGeometry(400,300,100,30)
@@ -93,7 +91,7 @@ class MainWindow(QtWidgets.QWidget):
     def dataReceived(self):
         self.buttonStart.setEnabled(False)
         self.labelMessage.setText("Message Send.")
-        self.test=self.lineEditSendData
+        self.test=self.lineEditSendData #going to update
         self.mySerialPort.serialPort.write("T".encode()) #going to update
         self.incomingMessage = str(self.mySerialPort.data.decode())    
         self.labelLedStatusResult.setText(self.incomingMessage)
