@@ -42,6 +42,7 @@ class MainWindow(QtWidgets.QWidget):
         self.labelLedStatus=QLabel("Led Status: ",self)
         self.labelLedStatusResult=QLabel("OFF ",self)
         self.labelTime=QLabel("Time",self)
+        self.labelMessage=QLabel("",self)
         self.buttonStart=QPushButton("Start",self)
         self.buttonOn=QPushButton("On",self)
         self.buttonOff=QPushButton("Off",self)
@@ -58,6 +59,7 @@ class MainWindow(QtWidgets.QWidget):
         self.labelLedStatus.setGeometry(100,330,100,100)
         self.labelLedStatusResult.setGeometry(400,330,100,100)
         self.labelTime.setGeometry(100,30,50,50)
+        self.labelMessage.setGeometry(100,100,100,100)
         self.lineEditSendData.setGeometry(100,80,200,30)
         
         self.mySerialPort = serialThreadClass()
@@ -89,9 +91,11 @@ class MainWindow(QtWidgets.QWidget):
 
 
     def dataReceived(self):
+        self.labelMessage.setText("Message Send...")
+        self.mySerialPort.serialPort.write("3".encode())
         #self.buttonStart.setEnabled(False)
-        self.deneme=int(self.lineEditSendData.text())
-        self.mySerialPort.serialPort.write(self.deneme.encode()) #????????
+        #§self.mySerialPort.serialPort.read(self.lineEditSendData.text().encode()) #sonra incele
+        
 
 
     def messageTextEdit(self):
