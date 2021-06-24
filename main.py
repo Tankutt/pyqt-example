@@ -79,25 +79,29 @@ class MainWindow(QtWidgets.QWidget):
             self.mySerialPort.serialPort.open()
 
     def ledOn(self):
-        self.mySerialPort.serialPort.write("1".encode())
+        self.mySerialPort.serialPort.write("L,1".encode())
         self.buttonOn.setEnabled(False)
         self.buttonOff.setEnabled(True)
         
 
     def ledOff(self):
-        self.mySerialPort.serialPort.write("2".encode())
+        self.mySerialPort.serialPort.write("L,0".encode())
         self.buttonOn.setEnabled(True)
         self.buttonOff.setEnabled(False)
 
 
     def dataReceived(self):
-        self.labelMessage.setText("Message Send...")
-        self.mySerialPort.serialPort.write("3".encode())
-        #self.buttonStart.setEnabled(False)
-        #§self.mySerialPort.serialPort.read(self.lineEditSendData.text().encode()) #sonra incele
+        self.buttonStart.setEnabled(False)
+        self.labelMessage.setText("Message Send.")
+        self.test=self.lineEditSendData
+        self.mySerialPort.serialPort.write("T".encode()) #going to update
+        self.incomingMessage = str(self.mySerialPort.data.decode())    
+        self.labelLedStatusResult.setText(self.incomingMessage)
+        if self.lineEditSendData == "feedback":
+            self.buttonStart.setEnabled(True)
+            self.labelMessage.setText("Message Received...")
         
-
-
+       
     def messageTextEdit(self):
         self.incomingMessage = str(self.mySerialPort.data.decode())    
         self.labelLedStatusResult.setText(self.incomingMessage)
