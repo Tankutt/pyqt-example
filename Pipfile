@@ -6,7 +6,7 @@ name = "pypi"
 [packages]
 pyside2 = "*"
 pyserial = "*"
-PyQt5 = "*"
+
 
 [dev-packages]
 black = "*"
