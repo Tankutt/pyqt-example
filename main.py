@@ -1,41 +1,49 @@
-import sys
-import serial
-from PyQt5.QtWidgets import QApplication, QLabel, QLineEdit, QMainWindow, QPushButton, QTextEdit
-from PyQt5 import QtWidgets,QtGui,QtCore
-from PyQt5.QtGui import QIntValidator
+from os import read
+import re
+import sys, serial, serial.tools.list_ports, warnings, time
+from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QLabel, QTextEdit, QPushButton, QLineEdit
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
 
+mySerial = serial.Serial("COM5",9600)
 
-class serialThreadClass(QtCore.QThread):  
+class Worker(QObject):
+    finished = pyqtSignal()
+    readData = pyqtSignal(str)
 
-    message = QtCore.pyqtSignal(str)
-    def __init__(self,parent = None):
-        super(serialThreadClass,self).__init__(parent)
-        self.serialPort = serial.Serial()
-        self.stopflag = False
+    @pyqtSlot()
+    def __init__(self):
+        super(Worker, self).__init__()
+        self.working = True
 
-    def stop(self):
-        self.stopflag = True
-
-    def run(self):
-        while True:
-            if (self.stopflag):
-                self.stopflag = False
-                break
-            elif(self.serialPort.isOpen()): 
-                try:                        
-                    self.data = self.serialPort.readline()
-                except:
-                    print("HATA\n")
-                self.message.emit(str(self.data.decode()))
+    def work(self):
+        while self.working:
+            line = mySerial.readline().decode('utf-8')
+            print(line)
+            time.sleep(0.1)
+            self.readData.emit(line)
+        self.finished.emit()
 
 class MainWindow(QtWidgets.QWidget):
 
-    def __init__(self):
-        super(MainWindow, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(MainWindow, self).__init__(*args, **kwargs)
+        self.thread = None
+        self.worker = None
         self.initUI()
         self.show()
-
+    
     def initUI(self):
+
+        self.worker = Worker()  
+        self.thread = QThread() 
+        
+        self.worker.moveToThread(self.thread)  
+        self.thread.started.connect(self.worker.work)
+        self.worker.readData.connect(self.LedStatusResult)
+        self.thread.start()
+
         self.setGeometry(600,300,600,500)
         self.setWindowTitle("QtPy_Proje")
         self.labelLed=QLabel("Led ",self)
@@ -48,7 +56,7 @@ class MainWindow(QtWidgets.QWidget):
         self.buttonOff=QPushButton("Off",self)
         self.buttonOff.setEnabled(False)
         self.lineEditSendData=QLineEdit("",self)
-        self.lineEditSendData.setValidator(QIntValidator(0,10000,self))
+        self.lineEditSendData.setValidator(QIntValidator(0,1000000000,self))
         
         self.buttonStart.setGeometry(400,80,100,30)
         self.buttonOn.setGeometry(100,300,100,30)
@@ -60,51 +68,41 @@ class MainWindow(QtWidgets.QWidget):
         self.labelMessage.setGeometry(100,100,100,100)
         self.lineEditSendData.setGeometry(100,80,200,30)
         
-        self.mySerialPort = serialThreadClass()
-        self.mySerialPort.message.connect(self.messageTextEdit)  
-        self.mySerialPort.start()
-
-        self.connectSerialPort() 
-        self.buttonStart.clicked.connect(self.dataReceived)
+        mySerial.reset_output_buffer
+        
+        self.buttonStart.clicked.connect(self.start)
         self.buttonOn.clicked.connect(self.ledOn)
         self.buttonOff.clicked.connect(self.ledOff)
-        
-    def connectSerialPort(self):
-        self.portName="COM5"
-        self.mySerialPort.serialPort.port=self.portName
-        self.mySerialPort.serialPort.baudrate = int(9600)
-        if not self.mySerialPort.serialPort.isOpen():
-            self.mySerialPort.serialPort.open()
 
     def ledOn(self):
-        self.mySerialPort.serialPort.write("L,1".encode())
         self.buttonOn.setEnabled(False)
         self.buttonOff.setEnabled(True)
+        mySerial.write("L,1".encode())
 
     def ledOff(self):
-        self.mySerialPort.serialPort.write("L,0".encode())
+        mySerial.write("L,0".encode())
         self.buttonOn.setEnabled(True)
         self.buttonOff.setEnabled(False)
-
-    def dataReceived(self):
+    
+    def LedStatusResult(self, i):
+        self.labelLedStatusResult.setText("{}".format(i))
+        print(i)
+    
+    def start(self):
         self.buttonStart.setEnabled(False)
         self.labelMessage.setText("Message Send.")
-        self.test=self.lineEditSendData #going to update
-        self.mySerialPort.serialPort.write("T".encode()) #going to update
-        self.incomingMessage = str(self.mySerialPort.data.decode())    
-        self.labelLedStatusResult.setText(self.incomingMessage)
-        if self.lineEditSendData == "feedback":
-            self.buttonStart.setEnabled(True)
-            self.labelMessage.setText("Message Received...")
-            
-    def messageTextEdit(self):
-        if self.lineEditSendData != "feedback":
-            self.incomingMessage = str(self.mySerialPort.data.decode())    
-            self.labelLedStatusResult.setText(self.incomingMessage)
+        self.lineEditSendData.setReadOnly(True)
+        self.message="T"+","+self.lineEditSendData.text()
+        mySerial.write(self.message.encode())
+        if (mySerial.in_waiting>0):
+            self.dataReceived()
         
-            
+    def dataReceived(self):
+        self.buttonStart.setEnabled(True)
+        self.labelMessage.setText("Message Received..")
+        self.lineEditSendData.setReadOnly(False)
+
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     mainWindow = MainWindow()
     sys.exit(app.exec_())
-
