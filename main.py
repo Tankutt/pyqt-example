@@ -1,5 +1,3 @@
-from os import read
-import re
 import sys, serial, serial.tools.list_ports, warnings, time
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QLabel, QTextEdit, QPushButton, QLineEdit
